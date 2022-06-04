@@ -8,6 +8,10 @@ func (b *MsgBuilder) yesNo() bool {
 	return cocoa.YesNoDlg(b.Msg, b.Dlg.Title)
 }
 
+func (b *MsgBuilder) errorYesNo() bool {
+	panic("not implemented")
+}
+
 func (b *MsgBuilder) info() {
 	cocoa.InfoDlg(b.Msg, b.Dlg.Title)
 }

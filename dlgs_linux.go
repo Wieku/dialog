@@ -55,6 +55,10 @@ func (b *MsgBuilder) yesNo() bool {
 	return runMsgDlg("Confirm?", 0, C.GTK_MESSAGE_QUESTION, C.GTK_BUTTONS_YES_NO, b) == C.GTK_RESPONSE_YES
 }
 
+func (b *MsgBuilder) errorYesNo() bool {
+	return runMsgDlg("Error", 0, C.GTK_MESSAGE_ERROR, C.GTK_BUTTONS_YES_NO, b) == C.GTK_RESPONSE_YES
+}
+
 func (b *MsgBuilder) info() {
 	runMsgDlg("Information", 0, C.GTK_MESSAGE_INFO, C.GTK_BUTTONS_OK, b)
 }

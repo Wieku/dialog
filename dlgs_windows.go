@@ -29,6 +29,11 @@ func (b *MsgBuilder) yesNo() bool {
 	return r == w32.IDYES
 }
 
+func (b *MsgBuilder) errorYesNo() bool {
+	r := w32.MessageBox(w32.HWND(0), b.Msg, firstOf(b.Dlg.Title, "Error"), w32.MB_YESNO|w32.MB_ICONERROR)
+	return r == w32.IDYES
+}
+
 func (b *MsgBuilder) info() {
 	w32.MessageBox(w32.HWND(0), b.Msg, firstOf(b.Dlg.Title, "Information"), w32.MB_OK|w32.MB_ICONINFORMATION)
 }
