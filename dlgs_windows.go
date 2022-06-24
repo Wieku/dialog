@@ -2,6 +2,7 @@ package dialog
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"syscall"
 	"unicode/utf16"
@@ -56,16 +57,50 @@ func (d filedlg) Filename() string {
 	return string(utf16.Decode(d.buf[:i]))
 }
 
+func (d filedlg) Filenames() (ret []string) {
+	basePath := ""
+
+	startI := 0
+
+	for i := 0; i < len(d.buf); i++ {
+		if d.buf[i] == 0 {
+			if startI == i { // By MS Docs, list ends at double NULL characters
+				break
+			}
+
+			txt := string(utf16.Decode(d.buf[startI:i]))
+
+			if basePath == "" {
+				basePath = txt
+			} else {
+				ret = append(ret, filepath.Join(basePath, txt))
+			}
+
+			startI = i + 1
+		}
+	}
+
+	return
+}
+
 func (b *FileBuilder) load() (string, error) {
-	d := openfile(w32.OFN_FILEMUSTEXIST|w32.OFN_NOCHANGEDIR, b)
+	d := openfile(w32.OFN_FILEMUSTEXIST|w32.OFN_NOCHANGEDIR, b, 100)
 	if w32.GetOpenFileName(d.opf) {
 		return d.Filename(), nil
 	}
 	return "", err()
 }
 
+func (b *FileBuilder) loadMultiple() ([]string, error) {
+	d := openfile(w32.OFN_FILEMUSTEXIST|w32.OFN_NOCHANGEDIR|w32.OFN_ALLOWMULTISELECT|w32.OFN_EXPLORER, b, 100)
+	if w32.GetOpenFileName(d.opf) {
+		return d.Filenames(), nil
+	}
+	return nil, err()
+}
+
 func (b *FileBuilder) save() (string, error) {
-	d := openfile(w32.OFN_OVERWRITEPROMPT|w32.OFN_NOCHANGEDIR, b)
+	d := openfile(w32.OFN_OVERWRITEPROMPT|w32.OFN_NOCHANGEDIR, b, 1)
 	if w32.GetSaveFileName(d.opf) {
 		return d.Filename(), nil
 	}
@@ -93,8 +128,8 @@ func utf16slice(ptr *uint16) []uint16 {
 	return slice
 }
 
-func openfile(flags uint32, b *FileBuilder) (d filedlg) {
-	d.buf = make([]uint16, w32.MAX_PATH)
+func openfile(flags uint32, b *FileBuilder, fileNum int) (d filedlg) {
+	d.buf = make([]uint16, w32.MAX_PATH*fileNum)
 	d.opf = &w32.OPENFILENAME{
 		File:    utf16ptr(d.buf),
 		MaxFile: uint32(len(d.buf)),

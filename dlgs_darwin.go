@@ -24,6 +24,10 @@ func (b *FileBuilder) load() (string, error) {
 	return b.run(false)
 }
 
+func (b *FileBuilder) loadMultiple() ([]string, error) {
+	panic("not implemented")
+}
+
 func (b *FileBuilder) save() (string, error) {
 	return b.run(true)
 }

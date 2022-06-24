@@ -118,6 +118,13 @@ func (b *FileBuilder) Load() (string, error) {
 	return b.load()
 }
 
+// LoadMultiple spawns the file selection dialog using the configured settings,
+// asking the user to select multiple files. Returns ErrCancelled as the error
+// if the user cancels or closes the dialog.
+func (b *FileBuilder) LoadMultiple() ([]string, error) {
+	return b.loadMultiple()
+}
+
 // Save spawns the file selection dialog using the configured settings,
 // asking the user for a filename to save as. If the chosen file exists, the
 // user is prompted whether they want to overwrite the file. Returns

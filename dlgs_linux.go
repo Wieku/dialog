@@ -1,7 +1,8 @@
 package dialog
 
-// #cgo pkg-config: gtk+-3.0
+// #cgo pkg-config: gtk+-3.0 glib-2.0
 // #cgo LDFLAGS: -lX11
+// #include <glib.h>
 // #include <X11/Xlib.h>
 // #include <gtk/gtk.h>
 // #include <stdlib.h>
@@ -68,18 +69,26 @@ func (b *MsgBuilder) error() {
 }
 
 func (b *FileBuilder) load() (string, error) {
-	return chooseFile("Open File", "Open", C.GTK_FILE_CHOOSER_ACTION_OPEN, b)
-}
-
-func (b *FileBuilder) save() (string, error) {
-	f, err := chooseFile("Save File", "Save", C.GTK_FILE_CHOOSER_ACTION_SAVE, b)
+	f, err := chooseFile("Open File", "Open", C.GTK_FILE_CHOOSER_ACTION_OPEN, b, false)
 	if err != nil {
 		return "", err
 	}
-	return f, nil
+	return f[0], nil
 }
 
-func chooseFile(title string, buttonText string, action C.GtkFileChooserAction, b *FileBuilder) (string, error) {
+func (b *FileBuilder) loadMultiple() ([]string, error) {
+	return chooseFile("Open Files", "Open", C.GTK_FILE_CHOOSER_ACTION_OPEN, b, true)
+}
+
+func (b *FileBuilder) save() (string, error) {
+	f, err := chooseFile("Save File", "Save", C.GTK_FILE_CHOOSER_ACTION_SAVE, b, false)
+	if err != nil {
+		return "", err
+	}
+	return f[0], nil
+}
+
+func chooseFile(title string, buttonText string, action C.GtkFileChooserAction, b *FileBuilder, multiple bool) ([]string, error) {
 	checkStatus()
 	ctitle := C.CString(title)
 	defer C.free(unsafe.Pointer(ctitle))
@@ -87,6 +96,10 @@ func chooseFile(title string, buttonText string, action C.GtkFileChooserAction, 
 	defer C.free(unsafe.Pointer(cbuttonText))
 	dlg := C.filedlg(ctitle, nil, action, cbuttonText)
 	fdlg := (*C.GtkFileChooser)(unsafe.Pointer(dlg))
+
+	if multiple {
+		C.gtk_file_chooser_set_select_multiple(fdlg, C.TRUE)
+	}
 
 	for _, filt := range b.Filters {
 		filter := C.gtk_file_filter_new()
@@ -110,11 +123,38 @@ func chooseFile(title string, buttonText string, action C.GtkFileChooserAction, 
 	r := C.gtk_dialog_run((*C.GtkDialog)(unsafe.Pointer(dlg)))
 	defer closeDialog(dlg)
 	if r == C.GTK_RESPONSE_ACCEPT {
-		return C.GoString(C.gtk_file_chooser_get_filename(fdlg)), nil
+		if multiple {
+			list := C.gtk_file_chooser_get_filenames(fdlg)
+			defer C.g_slist_free(list)
+
+			var files []string
+
+			for it := list; it != nil; {
+				fName := (*C.char)(it.data)
+
+				files = append(files, C.GoString(fName))
+
+				C.free(unsafe.Pointer(fName))
+
+				it = it.next
+			}
+
+			return files, nil
+		} else {
+			fName := C.gtk_file_chooser_get_filename(fdlg)
+
+			defer C.free(unsafe.Pointer(fName))
+
+			return []string{C.GoString(fName)}, nil
+		}
 	}
-	return "", ErrCancelled
+	return []string{""}, ErrCancelled
 }
 
 func (b *DirectoryBuilder) browse() (string, error) {
-	return chooseFile("Open Folder", "Open", C.GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, &FileBuilder{Dlg: b.Dlg})
+	f, err := chooseFile("Open Folder", "Open", C.GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, &FileBuilder{Dlg: b.Dlg}, false)
+	if err != nil {
+		return "", err
+	}
+	return f[0], nil
 }
