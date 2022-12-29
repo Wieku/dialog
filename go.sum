@@ -1,2 +1,4 @@
 github.com/TheTitanrain/w32 v0.0.0-20180517000239-4f5cfb03fabf h1:FPsprx82rdrX2jiKyS17BH6IrTmUBYqZa/CXT4uvb+I=
 github.com/TheTitanrain/w32 v0.0.0-20180517000239-4f5cfb03fabf/go.mod h1:peYoMncQljjNS6tZwI9WVyQB3qZS6u79/N3mBOcnd3I=
+github.com/rodrigocfd/windigo v0.0.0-20221212040622-0d5f23c1b18a h1:+/u9AW3UEcs12ow7X52KvdHMc5n0nwwsHLvmUPhH7sU=
+github.com/rodrigocfd/windigo v0.0.0-20221212040622-0d5f23c1b18a/go.mod h1:MW/87P744bxkvl5bw4PIAt9OHy56IyIqIRcotQUpG50=
