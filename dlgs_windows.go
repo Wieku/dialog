@@ -62,7 +62,7 @@ func (b *FileBuilder) load() (string, error) {
 		return "", ErrCancelled
 	}
 
-	return d.dlg.GetResultDisplayName(shellco.SIGDN_DESKTOPABSOLUTEEDITING), nil
+	return d.dlg.GetResultDisplayName(shellco.SIGDN_FILESYSPATH), nil
 }
 
 func (b *FileBuilder) loadMultiple() ([]string, error) {
@@ -76,7 +76,7 @@ func (b *FileBuilder) loadMultiple() ([]string, error) {
 
 	sDlg, _ := d.dlg.(shell.IFileOpenDialog)
 
-	return sDlg.GetResults().ListDisplayNames(shellco.SIGDN_DESKTOPABSOLUTEEDITING), nil
+	return sDlg.GetResults().ListDisplayNames(shellco.SIGDN_FILESYSPATH), nil
 }
 
 func (b *FileBuilder) save() (string, error) {
@@ -88,7 +88,7 @@ func (b *FileBuilder) save() (string, error) {
 		return "", ErrCancelled
 	}
 
-	return d.dlg.GetResultDisplayName(shellco.SIGDN_DESKTOPABSOLUTEEDITING), nil
+	return d.dlg.GetResultDisplayName(shellco.SIGDN_FILESYSPATH), nil
 }
 
 func openfile(b *FileBuilder, mFlag shellco.FOS) (d filedlg) {
@@ -151,5 +151,5 @@ func (b *DirectoryBuilder) browse() (string, error) {
 		return "", ErrCancelled
 	}
 
-	return d.dlg.GetResultDisplayName(shellco.SIGDN_DESKTOPABSOLUTEEDITING), nil
+	return d.dlg.GetResultDisplayName(shellco.SIGDN_FILESYSPATH), nil
 }
