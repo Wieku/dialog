@@ -112,3 +112,46 @@ func fileDlg(mode int, title string, exts []string, relaxExt bool) (string, erro
 	}
 	panic("unhandled case")
 }
+
+func LoadMultiple(title string, exts []string, relaxExt bool) ([]string, error) {
+	p := C.LoadMultiple{}
+	if title != "" {
+		p.title = C.CString(title)
+		defer C.free(unsafe.Pointer(p.title))
+	}
+	if len(exts) > 0 {
+		if len(exts) > 999 {
+			panic("more than 999 extensions not supported")
+		}
+		ptrSize := int(unsafe.Sizeof(&title))
+		p.exts = (*unsafe.Pointer)(C.malloc(C.size_t(ptrSize * len(exts))))
+		defer C.free(unsafe.Pointer(p.exts))
+		cext := (*(*[999]unsafe.Pointer)(unsafe.Pointer(p.exts)))[:]
+		for i, ext := range exts {
+			i := i
+			cext[i] = nsStr(ext)
+			defer C.NSRelease(cext[i])
+		}
+		p.numext = C.int(len(exts))
+		if relaxExt {
+			p.relaxext = 1
+		}
+	}
+	C.showLoadMultiple(&p)
+	switch p.result {
+	case C.DLG_OK:
+		result := []string{}
+		selected := (*(*[999]unsafe.Pointer)(unsafe.Pointer(p.selected)))[:]
+		for i := 0; i < int(p.selectedSize); i++ {
+			buf := (*(*[BUFSIZE]byte)(selected[i]))[:]
+			result = append(result, string(buf[:bytes.Index(buf, []byte{0})]))
+		}
+		C.releaseLoadMultiple(&p)
+		return result, nil
+	case C.DLG_CANCEL:
+		return nil, nil
+	case C.DLG_URLFAIL:
+		return nil, errors.New("failed to get file-system representation for selected URL")
+	}
+	panic("unhandled case")
+}

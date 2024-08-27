@@ -37,3 +37,18 @@ DlgResult fileDlg(FileDlgParams*);
 
 void* NSStr(void* buf, int len);
 void NSRelease(void* obj);
+
+typedef struct {
+    char *msg;
+    char *title;
+    void **exts;  /* list of valid extensions (elements actual type is NSString*) */
+    int numext;   /* number of items in exts */
+    int relaxext; /* allow other extensions? */
+
+    DlgResult result;
+    int selectedSize; /* number of items in selected */
+    void **selected;  /* list of selected files */
+} LoadMultiple;
+
+void showLoadMultiple(LoadMultiple *);
+void releaseLoadMultiple(LoadMultiple *);

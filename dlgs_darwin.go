@@ -25,7 +25,25 @@ func (b *FileBuilder) load() (string, error) {
 }
 
 func (b *FileBuilder) loadMultiple() ([]string, error) {
-	panic("not implemented")
+	star := false
+	var exts []string
+	for _, filt := range b.Filters {
+		for _, ext := range filt.Extensions {
+			if ext == "*" {
+				star = true
+			} else {
+				exts = append(exts, ext)
+			}
+		}
+	}
+	f, err := cocoa.LoadMultiple(b.Dlg.Title, exts, star)
+	if err != nil {
+		return nil, err
+	}
+	if len(f) == 0 {
+		return nil, ErrCancelled
+	}
+	return f, err
 }
 
 func (b *FileBuilder) save() (string, error) {
