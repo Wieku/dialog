@@ -1,0 +1,11 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE/OS files
+*.idea
+.DS_Store
+.vscode
+*~

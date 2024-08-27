@@ -128,3 +128,64 @@ DlgResult fileDlg(FileDlgParams* params) {
 }
 
 @end
+
+void runOnMainQueueWithoutDeadlocking(void (^block)(void)) {
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
+}
+
+void showLoadMultiple(LoadMultiple* params) {
+  runOnMainQueueWithoutDeadlocking(^{
+
+    params->selectedSize=0;
+
+  	NSOpenPanel* panel = [NSOpenPanel openPanel];
+    [panel setAllowsMultipleSelection:YES];
+    [panel setFloatingPanel:YES];
+    if(params->title != nil) {
+      [panel setTitle:[[NSString alloc] initWithUTF8String:params->title]];
+    }
+    if(params->numext > 0) {
+      [panel setAllowedFileTypes:[NSArray arrayWithObjects:(NSString**)params->exts count:params->numext]];
+    }
+    if(params->relaxext) {
+      [panel setAllowsOtherFileTypes:YES];
+    }
+
+    if (![panel runModal]) {
+      params->result = DLG_CANCEL;
+      return;
+    }
+
+    NSArray<NSURL *> *urls = [panel URLs];
+
+    for (int i = 0; i < [urls count]; i++) {
+      id url = [urls objectAtIndex:i];
+      char buf[PATH_MAX];
+      if(![url getFileSystemRepresentation:buf maxLength:PATH_MAX]) {
+          params->result =  DLG_URLFAIL;
+          return;
+      }
+    }
+
+    params->result = DLG_OK;
+    params->selectedSize= [panel.URLs count];
+    params->selected = (void**)malloc(params->selectedSize * sizeof(void*));
+    for (int i = 0; i < [urls count]; i++) {
+      id url = [urls objectAtIndex:i];
+      params->selected[i] = (void*)malloc(PATH_MAX);
+      [url getFileSystemRepresentation:params->selected[i] maxLength:PATH_MAX];
+    }
+
+  });
+}
+
+void releaseLoadMultiple(LoadMultiple* params) {
+    for (int i = 0; i < params->selectedSize; i++) {
+      free(params->selected[i]);
+    }
+    free(params->selected);
+}
